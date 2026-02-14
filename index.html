@@ -202,6 +202,10 @@
                 drawLandmarks(canvasCtx, lm, {color: '#fff', lineWidth: 1, radius: 2});
 
                 const isUp = (t, p) => lm[t].y < lm[p].y;
+                const indexUp = isUp(8, 6);
+                const middleUp = isUp(12, 10);
+                const ringUp = isUp(16, 14);
+                const pinkyUp = isUp(20, 18);
                 const pinch = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y);
                 
                 if (pinch < 0.04) detected = 'purple';
