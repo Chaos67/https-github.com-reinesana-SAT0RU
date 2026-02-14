@@ -2,17 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JJK: Cursed Technique - Motion Linked</title>
+    <title>JJK: Cursed Technique - Final Form</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; transition: background 0.5s ease; }
-        #ui { position: absolute; top: 8%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
-        h1 { font-size: 3.5rem; margin: 0; letter-spacing: 12px; font-weight: 900; background: linear-gradient(to bottom, #fff, #444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #technique-name { font-size: 1.4rem; color: #00ffff; margin-top: 10px; font-weight: bold; letter-spacing: 5px; text-transform: uppercase; text-shadow: 0 0 15px rgba(0, 255, 255, 0.6); }
-        #video-container { position: absolute; bottom: 30px; left: 30px; width: 320px; height: 240px; border: 2px solid rgba(255, 255, 255, 0.2); z-index: 20; background-color: #000; border-radius: 15px; overflow: hidden; transform: scaleX(-1); }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; transition: background 0.8s ease; }
+        #ui { position: absolute; top: 5%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
+        h1 { font-size: 3rem; margin: 0; letter-spacing: 15px; font-weight: 900; background: linear-gradient(to bottom, #fff, #333); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #technique-name { font-size: 1.5rem; color: #00ffff; margin-top: 10px; font-weight: bold; letter-spacing: 8px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
+        
+        #video-container { 
+            position: absolute; bottom: 20px; right: 20px; 
+            width: 280px; height: 210px; 
+            border: 2px solid rgba(255, 255, 255, 0.1); 
+            z-index: 20; background-color: #000; 
+            border-radius: 12px; overflow: hidden; 
+            transform: scaleX(-1); /* Mirror the video for natural movement */
+        }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        .void-active { background: radial-gradient(circle, #001a33 0%, #000 80%); }
-        .shrine-active { background: radial-gradient(circle, #330000 0%, #000 80%); }
+        
+        .void-active { background: radial-gradient(circle, #001020 0%, #000 90%); }
+        .shrine-active { background: radial-gradient(circle, #200000 0%, #000 90%); }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -24,7 +33,7 @@
 <body>
     <div id="ui">
         <h1>呪術廻戦</h1>
-        <div id="technique-name">RESONATING...</div>
+        <div id="technique-name">DORMANT...</div>
     </div>
     <div id="video-container">
         <video class="input_video"></video>
@@ -37,6 +46,7 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
+    // --- Core Engine ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 60;
@@ -67,45 +77,45 @@
     scene.add(particles);
 
     let currentTech = 'neutral';
-    let handPos = { x: 0, y: 0 };
+    let anchorPos = { x: 0, y: 0 };
     let shakeIntensity = 0;
     let glowColor = '#00ffff';
 
-    // --- Techniques ---
+    // --- Technique Visuals ---
     function getBlue(i) {
         const t = i / COUNT;
-        const angle = t * 40;
-        const radius = 1 + (t * 30);
-        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random()-0.5)*5, r: 0.1, g: 0.4, b: 1, s: 1.5 };
+        const radius = 2 + (t * 30);
+        const angle = t * 45;
+        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random()-0.5)*10, r: 0.1, g: 0.3, b: 1, s: 1.5 };
     }
 
     function getRed(i) {
-        if(i < COUNT * 0.15) {
-            const r = Math.random() * 6;
-            const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
-            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 3, g: 0, b: 0, s: 3 };
+        if(i < COUNT * 0.2) {
+            const r = Math.random() * 5;
+            const t = Math.random() * 6.28; const p = Math.acos(2 * Math.random() - 1);
+            return { x: r*Math.sin(p)*Math.cos(t), y: r*Math.sin(p)*Math.sin(t), z: r*Math.cos(p), r: 4, g: 0.1, b: 0, s: 3 };
         }
-        const t = i / COUNT;
-        return { x: (Math.random()-0.5)*80, y: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2, r: 1, g: 0, b: 0, s: 0.8 };
+        return { x: (Math.random()-0.5)*100, y: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2, r: 1, g: 0, b: 0, s: 0.8 };
     }
 
     function getPurple(i) {
-        const r = 20; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
-        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.8, g: 0, b: 1, s: 2.5 };
+        const r = 22; const t = Math.random() * 6.28; const p = Math.acos(2 * Math.random() - 1);
+        return { x: r*Math.sin(p)*Math.cos(t), y: r*Math.sin(p)*Math.sin(t), z: r*Math.cos(p), r: 0.6, g: 0, b: 1.5, s: 2.5 };
     }
 
-    function getShrine(i) {
-        if (i < COUNT * 0.3) return { x: (Math.random()-0.5)*100, y: -20, z: (Math.random()-0.5)*100, r: 0.4, g: 0, b: 0, s: 0.8 };
-        return { x: (Math.random()-0.5)*2, y: -20 + Math.random()*50, z: (Math.random()-0.5)*2, r: 0.6, g: 0, b: 0, s: 0.5 };
+    function getVoid(i) {
+        const radius = 28 + Math.random() * 50;
+        const t = Math.random() * 6.28;
+        return { x: radius * Math.cos(t), y: radius * Math.sin(t), z: (Math.random()-0.5)*2, r: 0.1, g: 0.8, b: 1, s: 1.0 };
     }
 
-    // --- MediaPipe Hand Tracking ---
+    // --- MediaPipe Recognition ---
     const videoElement = document.querySelector('.input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
     const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
 
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
+    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.8, minTrackingConfidence: 0.8 });
 
     hands.onResults((results) => {
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
@@ -113,20 +123,29 @@
 
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const lm = results.multiHandLandmarks[0];
-            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 5});
-            
-            // Map palm center (landmark 9) to 3D space
-            handPos.x = (0.5 - lm[9].x) * 120;
-            handPos.y = (0.5 - lm[9].y) * 80;
+            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 4});
 
-            const isUp = (t, p) => lm[t].y < lm[p].y;
-            const isOpen = isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18);
+            // Logic Helpers
+            const isUp = (tip, base) => lm[tip].y < lm[base].y;
             
+            // PHOTO 2 LOGIC: Open Palm = Blue
+            const isOpenPalm = isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18);
+            
+            // PHOTO 1 LOGIC: Pointing = Red
+            const isPointing = isUp(8,6) && !isUp(12,10) && !isUp(16,14) && !isUp(20,18);
+
             if (results.multiHandLandmarks.length === 2) detected = 'purple';
-            else if (isOpen) detected = 'blue';
+            else if (isOpenPalm) {
+                detected = 'blue';
+                anchorPos.x = (0.5 - lm[9].x) * 120; // Palm center
+                anchorPos.y = (0.5 - lm[9].y) * 80;
+            }
+            else if (isPointing) {
+                detected = 'red';
+                anchorPos.x = (0.5 - lm[8].x) * 120; // Fingertip tip
+                anchorPos.y = (0.5 - lm[8].y) * 80;
+            }
             else if (isUp(8,6) && isUp(12,10) && !isUp(16,14)) detected = 'void';
-            else if (isUp(8,6) && !isUp(12,10)) detected = 'red';
-            else if (lm[8].x < lm[12].x && lm[8].y > lm[12].y) detected = 'shrine'; // Fingers crossed approximation
         }
         updateState(detected);
     });
@@ -138,23 +157,21 @@
         document.body.className = '';
         shakeIntensity = tech !== 'neutral' ? 0.4 : 0;
 
-        if(tech === 'blue') { glowColor = '#0088ff'; nameEl.innerText = "Lapse: Blue"; bloomPass.strength = 2.5; }
-        else if(tech === 'red') { glowColor = '#ff0000'; nameEl.innerText = "Reversal: Red"; bloomPass.strength = 3.0; }
-        else if(tech === 'purple') { glowColor = '#aa00ff'; nameEl.innerText = "Hollow: Purple"; bloomPass.strength = 5.0; shakeIntensity = 1.2; }
-        else if(tech === 'shrine') { glowColor = '#ff4400'; nameEl.innerText = "Malevolent Shrine"; document.body.classList.add('shrine-active'); }
-        else if(tech === 'void') { glowColor = '#00ffff'; nameEl.innerText = "Infinite Void"; document.body.classList.add('void-active'); }
-        else { glowColor = '#00ffff'; nameEl.innerText = "Cursed Energy Flow"; bloomPass.strength = 1.5; }
+        if(tech === 'blue') { glowColor = '#00ffff'; nameEl.innerText = "Lapse: Blue"; bloomPass.strength = 2.5; }
+        else if(tech === 'red') { glowColor = '#ff3300'; nameEl.innerText = "Reversal: Red"; bloomPass.strength = 3.5; }
+        else if(tech === 'purple') { glowColor = '#aa00ff'; nameEl.innerText = "Hollow Technique: Purple"; bloomPass.strength = 5.0; shakeIntensity = 1.0; }
+        else if(tech === 'void') { glowColor = '#00ffff'; nameEl.innerText = "Domain: Infinite Void"; document.body.classList.add('void-active'); }
+        else { glowColor = '#00ffff'; nameEl.innerText = "Cursed Energy Flow"; bloomPass.strength = 1.2; }
 
         for(let i=0; i<COUNT; i++) {
             let p;
             if(tech === 'neutral') {
-                const r = 15 + Math.random()*10;
-                p = { x: r*Math.cos(i), y: r*Math.sin(i), z: (Math.random()-0.5)*10, r: 0, g: 0.2, b: 0.3, s: 0.4 };
+                const r = 20 + Math.random()*10;
+                p = { x: r*Math.cos(i), y: r*Math.sin(i), z: (Math.random()-0.5)*5, r: 0, g: 0.1, b: 0.2, s: 0.4 };
             }
             else if(tech === 'blue') p = getBlue(i);
             else if(tech === 'red') p = getRed(i);
             else if(tech === 'purple') p = getPurple(i);
-            else if(tech === 'shrine') p = getShrine(i);
             else if(tech === 'void') p = getVoid(i);
 
             targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
@@ -175,47 +192,9 @@
     function animate() {
         requestAnimationFrame(animate);
         
-        // Follow hand position for Blue and Red
+        // Dynamic Anchor movement
         if(currentTech === 'blue' || currentTech === 'red') {
-            particles.position.x += (handPos.x - particles.position.x) * 0.1;
-            particles.position.y += (handPos.y - particles.position.y) * 0.1;
+            particles.position.x += (anchorPos.x - particles.position.x) * 0.15;
+            particles.position.y += (anchorPos.y - particles.position.y) * 0.15;
         } else {
-            particles.position.x *= 0.9;
-            particles.position.y *= 0.9;
-        }
-
-        if (shakeIntensity > 0) {
-            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*shakeIntensity*50}px, ${(Math.random()-0.5)*shakeIntensity*50}px)`;
-        }
-
-        const pos = particles.geometry.attributes.position.array;
-        const col = particles.geometry.attributes.color.array;
-        const siz = particles.geometry.attributes.size.array;
-
-        for(let i=0; i<COUNT*3; i++) {
-            pos[i] += (targetPositions[i] - pos[i]) * 0.15;
-            col[i] += (targetColors[i] - col[i]) * 0.1;
-        }
-        for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
-
-        particles.geometry.attributes.position.needsUpdate = true;
-        particles.geometry.attributes.color.needsUpdate = true;
-        particles.geometry.attributes.size.needsUpdate = true;
-
-        if(currentTech === 'blue') particles.rotation.z -= 0.15;
-        else if(currentTech === 'purple') particles.rotation.y += 0.2;
-        else particles.rotation.y += 0.01;
-
-        composer.render();
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
-    });
-</script>
-</body>
-</html>
+            particles
