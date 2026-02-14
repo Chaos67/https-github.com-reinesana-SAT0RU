@@ -197,4 +197,43 @@
             particles.position.x += (anchorPos.x - particles.position.x) * 0.15;
             particles.position.y += (anchorPos.y - particles.position.y) * 0.15;
         } else {
-            particles
+            particles.position.x *= 0.9;
+            particles.position.y *= 0.9;
+        }
+
+        if (shakeIntensity > 0) {
+            const s = shakeIntensity * 40;
+            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*s}px, ${(Math.random()-0.5)*s}px)`;
+        }
+
+        const pos = particles.geometry.attributes.position.array;
+        const col = particles.geometry.attributes.color.array;
+        const siz = particles.geometry.attributes.size.array;
+
+        for(let i=0; i<COUNT*3; i++) {
+            pos[i] += (targetPositions[i] - pos[i]) * 0.18;
+            col[i] += (targetColors[i] - col[i]) * 0.12;
+        }
+        for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.12;
+
+        particles.geometry.attributes.position.needsUpdate = true;
+        particles.geometry.attributes.color.needsUpdate = true;
+        particles.geometry.attributes.size.needsUpdate = true;
+
+        if(currentTech === 'blue') particles.rotation.z -= 0.2;
+        else if(currentTech === 'red') particles.rotation.y += 0.3;
+        else particles.rotation.y += 0.01;
+
+        composer.render();
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
+</body>
+</html>
