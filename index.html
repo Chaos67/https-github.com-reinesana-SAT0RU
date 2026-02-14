@@ -2,25 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>JJK: Cursed Technique Master - Final Fusion</title>
+    <title>JJK: Cursed Technique - Blue and Red</title>
     <style>
-        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; transition: background 0.8s ease; }
-        #ui { position: absolute; top: 5%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
-        h1 { font-size: 3rem; margin: 0; letter-spacing: 15px; font-weight: 900; background: linear-gradient(to bottom, #fff, #333); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        #technique-name { font-size: 1.5rem; color: #00ffff; margin-top: 10px; font-weight: bold; letter-spacing: 8px; text-transform: uppercase; text-shadow: 0 0 20px rgba(0, 255, 255, 0.8); }
-        
-        #video-container { 
-            position: absolute; bottom: 20px; right: 20px; 
-            width: 320px; height: 240px; 
-            border: 2px solid rgba(255, 255, 255, 0.1); 
-            z-index: 20; background-color: #000; 
-            border-radius: 12px; overflow: hidden; 
-            transform: scaleX(-1);
-        }
-        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.5; }
+        body { margin: 0; overflow: hidden; background-color: #000; font-family: 'Courier New', sans-serif; }
+        #ui { position: absolute; top: 10%; width: 100%; text-align: center; color: #fff; pointer-events: none; z-index: 10; }
+        h1 { font-size: 3rem; margin: 0; letter-spacing: 10px; font-weight: 900; background: linear-gradient(to bottom, #fff, #888); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        #technique-name { font-size: 1.2rem; color: #00ffff; margin-top: 15px; font-weight: bold; letter-spacing: 4px; text-transform: uppercase; text-shadow: 0 0 10px rgba(0, 255, 255, 0.5); }
+        #video-container { position: absolute; bottom: 2%; left: 18%; transform: translateX(-50%) scaleX(-1); width: 85vw; max-width: 450px; height: 42vh; border: 2px solid rgba(255, 255, 255, 0.2); z-index: 20; background-color: #000; border-radius: 25px; overflow: hidden; box-shadow: 0 0 40px rgba(0,0,0,0.9); }
+        video { width: 100%; height: 100%; object-fit: cover; opacity: 0.8; }
         #output_canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-        
-        .void-active { background: radial-gradient(circle, #001020 0%, #000 90%); }
+        #grain { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E"); }
     </style>
     <script type="importmap">
         { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
@@ -30,9 +21,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
 </head>
 <body>
+    <div id="grain"></div>
     <div id="ui">
         <h1>呪術廻戦</h1>
-        <div id="technique-name">DORMANT...</div>
+        <div id="technique-name">NEUTRAL STATE</div>
     </div>
     <div id="video-container">
         <video class="input_video"></video>
@@ -45,29 +37,13 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    // --- Audio Engine ---
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let osc = null;
-    function startHum(freq) {
-        if (osc) return;
-        osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = 'sawtooth';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-    }
-    function stopHum() { if (osc) { osc.stop(); osc = null; } }
-
-    // --- Three.js Setup ---
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.z = 60;
+    camera.position.z = 55;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     document.body.appendChild(renderer.domElement);
 
     const composer = new EffectComposer(renderer);
@@ -75,7 +51,7 @@
     const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
     composer.addPass(bloomPass);
 
-    const COUNT = 18000;
+    const COUNT = 20000;
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(COUNT * 3);
     const colors = new Float32Array(COUNT * 3);
@@ -91,40 +67,44 @@
     const particles = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.3, vertexColors: true, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
     scene.add(particles);
 
-    let currentTech = 'neutral';
-    let anchorPos = { x: 0, y: 0 };
-    let shakeIntensity = 0;
-    let glowColor = '#00ffff';
+    // --- Technique Animations ---
 
-    // --- Technique Shapes ---
-    const getBlue = (i) => {
-        const t = i / COUNT;
-        const angle = t * 60;
-        const r = 1 + (t * 25);
-        return { x: r * Math.cos(angle), y: r * Math.sin(angle), z: (Math.random()-0.5)*10, r: 0, g: 0.4, b: 1, s: 1.8 };
-    };
+    // BLUE: Converging Inward (Vacuum)
+    function getBlue(i) {
+        const t = (i / COUNT);
+        const angle = t * 40; 
+        const radius = 35 - (t * 34); // Particles pulled toward center
+        return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * 10, r: 0, g: 0.5, b: 1.5, s: 1.5 };
+    }
 
-    const getRed = (i) => {
-        if(i < COUNT * 0.2) {
-            const r = Math.random() * 5;
-            const t = Math.random() * 6.28; const p = Math.acos(2 * Math.random() - 1);
-            return { x: r*Math.sin(p)*Math.cos(t), y: r*Math.sin(p)*Math.sin(t), z: r*Math.cos(p), r: 4, g: 0.1, b: 0, s: 3.5 };
+    // RED: Diverging Outward (Expansive arms)
+    function getRed(i) {
+        if(i < COUNT * 0.1) {
+            const r = Math.random() * 9;
+            const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
+            return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 3, g: 0.1, b: 0.1, s: 2.5 };
+        } else {
+            const armCount = 3; const t = (i / COUNT); 
+            const angle = t * 15 + ((i % armCount) * (Math.PI * 2 / armCount));
+            const radius = 2 + (t * 40); 
+            return { x: radius * Math.cos(angle), y: radius * Math.sin(angle), z: (Math.random() - 0.5) * (10 * t), r: 0.8, g: 0, b: 0, s: 1.0 };
         }
-        return { x: (Math.random()-0.5)*120, y: (Math.random()-0.5)*2, z: (Math.random()-0.5)*2, r: 1.5, g: 0, b: 0, s: 0.8 };
-    };
+    }
 
-    const getPurple = (i) => {
-        const r = 22; const t = Math.random() * 6.28; const p = Math.acos(2 * Math.random() - 1);
-        return { x: r*Math.sin(p)*Math.cos(t), y: r*Math.sin(p)*Math.sin(t), z: r*Math.cos(p), r: 0.8, g: 0, b: 2, s: 2.8 };
-    };
+    function getPurple(i) {
+        const r = 20; const theta = Math.random() * Math.PI * 2; const phi = Math.acos(2 * Math.random() - 1);
+        return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.6, g: 0.2, b: 1.5, s: 2.5 };
+    }
 
-    // --- Hand Tracking Logic ---
+    // --- Tracking Logic ---
+    let currentTech = 'neutral';
+    let glowColor = '#00ffff';
     const videoElement = document.querySelector('.input_video');
     const canvasElement = document.getElementById('output_canvas');
     const canvasCtx = canvasElement.getContext('2d');
-    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
 
-    hands.setOptions({ maxNumHands: 2, modelComplexity: 1, minDetectionConfidence: 0.8, minTrackingConfidence: 0.8 });
+    const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+    hands.setOptions({ maxNumHands: 1, minDetectionConfidence: 0.7 });
 
     hands.onResults((results) => {
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
@@ -132,29 +112,18 @@
 
         if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
             const lm = results.multiHandLandmarks[0];
-            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 4});
-
-            const isUp = (tip, knuckle) => lm[tip].y < lm[knuckle].y;
+            drawConnectors(canvasCtx, lm, HAND_CONNECTIONS, {color: glowColor, lineWidth: 3});
             
-            // PHOTO 2: OPEN PALM
+            const isUp = (t, p) => lm[t].y < lm[p].y;
+            
+            // GESTURE DETERMINATION
             const isOpenPalm = isUp(8,6) && isUp(12,10) && isUp(16,14) && isUp(20,18);
-            // PHOTO 1: POINTING
-            const isPointing = isUp(8,6) && !isUp(12,10) && !isUp(16,14) && !isUp(20,18);
+            const isPointing = isUp(8,6) && !isUp(12,10) && !isUp(16,14);
+            const isPinching = Math.hypot(lm[8].x - lm[4].x, lm[8].y - lm[4].y) < 0.04;
 
-            if (results.multiHandLandmarks.length === 2) {
-                detected = 'purple';
-                const lm2 = results.multiHandLandmarks[1];
-                anchorPos.x = (0.5 - ((lm[9].x + lm2[9].x)/2)) * 120;
-                anchorPos.y = (0.5 - ((lm[9].y + lm2[9].y)/2)) * 80;
-            } else if (isOpenPalm) {
-                detected = 'blue';
-                anchorPos.x = (0.5 - lm[9].x) * 120;
-                anchorPos.y = (0.5 - lm[9].y) * 80;
-            } else if (isPointing) {
-                detected = 'red';
-                anchorPos.x = (0.5 - lm[8].x) * 120; // Anchor to TIP of finger
-                anchorPos.y = (0.5 - lm[8].y) * 80;
-            }
+            if (isPinching) detected = 'purple';
+            else if (isOpenPalm) detected = 'blue';
+            else if (isPointing) detected = 'red';
         }
         updateState(detected);
     });
@@ -163,86 +132,8 @@
         if(currentTech === tech) return;
         currentTech = tech;
         const nameEl = document.getElementById('technique-name');
-        
-        if(tech !== 'neutral') {
-            audioCtx.resume();
-            startHum(tech === 'blue' ? 110 : 80);
-        } else {
-            stopHum();
-        }
 
-        if(tech === 'blue') { glowColor = '#00ffff'; nameEl.innerText = "Lapse: Blue"; bloomPass.strength = 2.5; }
-        else if(tech === 'red') { glowColor = '#ff3300'; nameEl.innerText = "Reversal: Red"; bloomPass.strength = 3.5; }
-        else if(tech === 'purple') { glowColor = '#aa00ff'; nameEl.innerText = "Hollow: Purple"; bloomPass.strength = 6.0; shakeIntensity = 1.0; }
-        else { glowColor = '#00ffff'; nameEl.innerText = "Neutral"; bloomPass.strength = 1.2; shakeIntensity = 0; }
-
-        for(let i=0; i<COUNT; i++) {
-            let p;
-            if(tech === 'blue') p = getBlue(i);
-            else if(tech === 'red') p = getRed(i);
-            else if(tech === 'purple') p = getPurple(i);
-            else {
-                const r = 20 + Math.random()*10;
-                p = { x: r*Math.cos(i), y: r*Math.sin(i), z: 0, r: 0, g: 0.1, b: 0.2, s: 0.4 };
-            }
-            targetPositions[i*3] = p.x; targetPositions[i*3+1] = p.y; targetPositions[i*3+2] = p.z;
-            targetColors[i*3] = p.r; targetColors[i*3+1] = p.g; targetColors[i*3+2] = p.b;
-            targetSizes[i] = p.s;
-        }
-    }
-
-    const cameraUtils = new Camera(videoElement, {
-        onFrame: async () => {
-            canvasElement.width = videoElement.videoWidth;
-            canvasElement.height = videoElement.videoHeight;
-            await hands.send({image: videoElement});
-        }, width: 640, height: 480
-    });
-    cameraUtils.start();
-
-    function animate() {
-        requestAnimationFrame(animate);
-        
-        if(currentTech !== 'neutral') {
-            particles.position.x += (anchorPos.x - particles.position.x) * 0.2;
-            particles.position.y += (anchorPos.y - particles.position.y) * 0.2;
-        } else {
-            particles.position.x *= 0.9; particles.position.y *= 0.9;
-        }
-
-        if (shakeIntensity > 0) {
-            const s = shakeIntensity * 40;
-            renderer.domElement.style.transform = `translate(${(Math.random()-0.5)*s}px, ${(Math.random()-0.5)*s}px)`;
-        }
-
-        const pos = geometry.attributes.position.array;
-        const col = geometry.attributes.color.array;
-        const siz = geometry.attributes.size.array;
-
-        for(let i=0; i<COUNT*3; i++) {
-            pos[i] += (targetPositions[i] - pos[i]) * 0.18;
-            col[i] += (targetColors[i] - col[i]) * 0.1;
-        }
-        for(let i=0; i<COUNT; i++) siz[i] += (targetSizes[i] - siz[i]) * 0.1;
-
-        geometry.attributes.position.needsUpdate = true;
-        geometry.attributes.color.needsUpdate = true;
-        geometry.attributes.size.needsUpdate = true;
-
-        if(currentTech === 'blue') particles.rotation.z -= 0.2;
-        else if(currentTech === 'red') particles.rotation.y += 0.3;
-        else particles.rotation.y += 0.01;
-
-        composer.render();
-    }
-    animate();
-
-    window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        composer.setSize(window.innerWidth, window.innerHeight);
-    });
-</script>
-</body>
-</html>
+        if(tech === 'blue') { glowColor = '#0066ff'; nameEl.innerText = "Lapse: Blue"; bloomPass.strength = 2.5; }
+        else if(tech === 'red') { glowColor = '#ff0000'; nameEl.innerText = "Reversal: Red"; bloomPass.strength = 2.5; }
+        else if(tech === 'purple') { glowColor = '#bb00ff'; nameEl.innerText = "Hollow: Purple"; bloomPass.strength = 4.0; }
+        else { glowColor = '#00ffff'; nameEl.innerText = "Neutral State"; bloomPass.strength = 1.0
