@@ -141,7 +141,6 @@
         if(i < COUNT * 0.1) {
             const r = Math.random() * 9;
             const theta = Math.random() * 6.28; const phi = Math.acos(2 * Math.random() - 1);
-            // RGB values: Low Red (0.1), Medium Green (0.5), High Blue (3)
             return { x: r * Math.sin(phi) * Math.cos(theta), y: r * Math.sin(phi) * Math.sin(theta), z: r * Math.cos(phi), r: 0.1, g: 0.5, b: 3, s: 2.5 };
         } else {
             const armCount = 3; const t = (i / COUNT); 
